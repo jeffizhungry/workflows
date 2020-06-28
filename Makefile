@@ -8,7 +8,7 @@
 
 # Start cadence cluster (simple)
 .PHONY: cadence
-cadence: clean-cadence register start-cadence
+cadence: clean-cadence start-cadence
 
 # Start cadence cluster
 .PHONY: start-cadence
@@ -22,11 +22,6 @@ start-cadence:
 clean-cadence:
 	docker-compose -f cadence/docker-compose.yaml down
 
-# Register domains
-.PHONY: register
-register:
-	docker run --network=host --rm ubercadence/cli:master --do simple-domain domain register --rd 1
-
 # --------------------------------------
 #  Rules - App
 # --------------------------------------
@@ -36,7 +31,12 @@ register:
 install-deps:
 	go get -u -v github.com/codeskyblue/fswatch
 
-# Start applicationc
+# Register domains
+.PHONY: register
+register:
+	docker run --network=host --rm ubercadence/cli:master --do simple-domain domain register --rd 1
+
+# Start application
 .PHONY: run
 run:
 	fswatch --config fsw.yml
