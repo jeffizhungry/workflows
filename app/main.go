@@ -1,9 +1,8 @@
 package main
 
 import (
-	"net/http"
-
 	"github.com/jeffizhungry/workflows/app/internal/cadenceadapter"
+	"github.com/jeffizhungry/workflows/app/internal/endpoints"
 	"github.com/jeffizhungry/workflows/app/internal/workflows"
 	"github.com/labstack/echo/v4"
 	"github.com/labstack/echo/v4/middleware"
@@ -41,24 +40,10 @@ func runHTTPServer(adapter *cadenceadapter.CadenceAdapter) {
 	e.Use(middleware.Recover())
 
 	// Routes
-	e.GET("/", homeEndpoint)
-	e.POST("/start", startWorkflowEndpoint)
-	e.POST("/continue", continueWorkflowEndpoint)
+	endpoints.RegisterRootHandler(e, adapter)
 
 	// Start server
 	e.Logger.Fatal(e.Start(":8081"))
-}
-
-func homeEndpoint(c echo.Context) error {
-	return c.String(http.StatusOK, "Hello, World")
-}
-
-func startWorkflowEndpoint(c echo.Context) error {
-	return c.String(http.StatusOK, "Hello, World")
-}
-
-func continueWorkflowEndpoint(c echo.Context) error {
-	return c.String(http.StatusOK, "Hello, World")
 }
 
 func main() {
