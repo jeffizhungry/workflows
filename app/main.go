@@ -19,6 +19,7 @@ func main() {
 func runCadenceWorkers() {
 	logrus.Info("runCadenceWorkers starting...")
 	defer logrus.Info("runCadenceWorkers exited")
+
 	// Configure worker params
 	var (
 		domain               = "simple-domain"
@@ -41,8 +42,8 @@ func runCadenceWorkers() {
 }
 
 func runHTTPServer() {
-	logrus.Info("runCadenceWorkers starting...")
-	defer logrus.Info("runCadenceWorkers exited")
+	logrus.Info("runHTTPServer starting...")
+	defer logrus.Info("runHTTPServer exited")
 
 	// Echo instance
 	e := echo.New()
