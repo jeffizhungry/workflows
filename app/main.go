@@ -11,37 +11,26 @@ import (
 	"go.uber.org/cadence/worker"
 )
 
-func main() {
-	runCadenceWorkers()
-	runHTTPServer()
-}
+const defaultDomain = "simple-domain"
 
-func runCadenceWorkers() {
+func runCadenceWorkers(adapter *cadenceadapter.CadenceAdapter) {
 	logrus.Info("runCadenceWorkers starting...")
 	defer logrus.Info("runCadenceWorkers exited")
 
 	// Configure worker params
 	var (
-		domain               = "simple-domain"
 		workflowTaskListName = workflows.TaskListName
 		options              = worker.Options{}
 	)
 
-	var adapter cadenceadapter.CadenceAdapter
-	adapter.Setup(cadenceadapter.CadenceConfig{
-		Domain:   domain,
-		Service:  "cadence-frontend",
-		HostPort: "127.0.0.1:7933",
-	})
-
 	// Start worker
-	w := worker.New(adapter.ServiceClient, domain, workflowTaskListName, options)
+	w := worker.New(adapter.ServiceClient, defaultDomain, workflowTaskListName, options)
 	if err := w.Start(); err != nil {
 		logrus.WithError(err).Fatal("Failed to start workers")
 	}
 }
 
-func runHTTPServer() {
+func runHTTPServer(adapter *cadenceadapter.CadenceAdapter) {
 	logrus.Info("runHTTPServer starting...")
 	defer logrus.Info("runHTTPServer exited")
 
@@ -52,12 +41,34 @@ func runHTTPServer() {
 	e.Use(middleware.Recover())
 
 	// Routes
-	e.GET("/", home)
+	e.GET("/", homeEndpoint)
+	e.POST("/start", startWorkflowEndpoint)
+	e.POST("/continue", continueWorkflowEndpoint)
 
 	// Start server
 	e.Logger.Fatal(e.Start(":8081"))
 }
 
-func home(c echo.Context) error {
+func homeEndpoint(c echo.Context) error {
 	return c.String(http.StatusOK, "Hello, World")
+}
+
+func startWorkflowEndpoint(c echo.Context) error {
+	return c.String(http.StatusOK, "Hello, World")
+}
+
+func continueWorkflowEndpoint(c echo.Context) error {
+	return c.String(http.StatusOK, "Hello, World")
+}
+
+func main() {
+	var adapter cadenceadapter.CadenceAdapter
+	adapter.Setup(cadenceadapter.CadenceConfig{
+		Domain:   defaultDomain,
+		Service:  "cadence-frontend",
+		HostPort: "127.0.0.1:7933",
+	})
+
+	runCadenceWorkers(&adapter)
+	runHTTPServer(&adapter)
 }
