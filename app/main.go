@@ -5,10 +5,29 @@ import (
 
 	"github.com/labstack/echo/v4"
 	"github.com/labstack/echo/v4/middleware"
+	"github.com/sirupsen/logrus"
+	"go.uber.org/cadence/worker"
 )
 
 func main() {
+	runCadenceWorkers()
 	runHTTPServer()
+}
+
+func runCadenceWorkers() {
+	// Configure worker params
+	var (
+		domain               = ""
+		workflowTaskListName = ""
+		options              = worker.Options{}
+	)
+	cadenceadapter{}
+
+	// Start worker
+	w := worker.New(nil, domain, workflowTaskListName, options)
+	if err := w.Start(); err != nil {
+		logrus.WithError(err).Fatal("Failed to start workers")
+	}
 }
 
 func runHTTPServer() {

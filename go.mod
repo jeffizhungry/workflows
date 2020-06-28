@@ -2,12 +2,19 @@ module github.com/jeffizhungry/workflows
 
 go 1.14
 
+replace (
+	// Need to version pin thrift for compilation issues
+	// https://github.com/uber-go/cadence-client/issues/523
+	github.com/apache/thrift => github.com/apache/thrift v0.0.0-20190309152529-a9b748bb0e02
+)
+
 require (
 	github.com/codeskyblue/fswatch v0.0.0-20191227065248-65cdcfddf017 // indirect
 	github.com/codeskyblue/kexec v0.0.0-20180119015717-5a4bed90d99a // indirect
 	github.com/fsnotify/fsnotify v1.4.9 // indirect
 	github.com/google/shlex v0.0.0-20191202100458-e7afc7fbc510 // indirect
 	github.com/labstack/echo/v4 v4.1.16
+	github.com/sirupsen/logrus v1.4.2
 	github.com/spf13/viper v1.7.0
 	github.com/uber-go/tally v3.3.17+incompatible
 	go.uber.org/cadence v0.12.2
