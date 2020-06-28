@@ -4,6 +4,7 @@ import (
 	"net/http"
 
 	"github.com/jeffizhungry/workflows/app/internal/cadenceadapter"
+	"github.com/jeffizhungry/workflows/app/internal/workflows"
 	"github.com/labstack/echo/v4"
 	"github.com/labstack/echo/v4/middleware"
 	"github.com/sirupsen/logrus"
@@ -20,8 +21,8 @@ func runCadenceWorkers() {
 	defer logrus.Info("runCadenceWorkers exited")
 	// Configure worker params
 	var (
-		domain               = "my-first-domain"
-		workflowTaskListName = ""
+		domain               = "simple-domain"
+		workflowTaskListName = workflows.TaskListName
 		options              = worker.Options{}
 	)
 
@@ -53,7 +54,7 @@ func runHTTPServer() {
 	e.GET("/", home)
 
 	// Start server
-	e.Logger.Fatal(e.Start(":8080"))
+	e.Logger.Fatal(e.Start(":8081"))
 }
 
 func home(c echo.Context) error {
