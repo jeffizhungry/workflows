@@ -1,0 +1,17 @@
+# See documentation here https://github.com/codeskyblue/fswatch
+desc: fwsatch config to watch for file changes and rebuild the app
+triggers:
+  - pattens:
+    - '**/*.go'
+    - '**/*.c'
+    # If shell is true, $cmd will be wrapped with `bash -c`
+    shell: true
+    cmd: go run ./app/main.go
+    # Debounce file changes
+    delay: 100ms
+    stop_timeout: 1s
+    signal: "KILL"
+    kill_signal: "SIGTERM"
+watch_paths:
+  - ./app
+watch_depth: 5
