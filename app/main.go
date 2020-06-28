@@ -8,6 +8,10 @@ import (
 )
 
 func main() {
+	runHTTPServer()
+}
+
+func runHTTPServer() {
 	// Echo instance
 	e := echo.New()
 
