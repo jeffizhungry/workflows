@@ -5,25 +5,25 @@ import (
 	"fmt"
 	"net/http"
 	"strconv"
-	"time"
 
 	"github.com/jeffizhungry/workflows/app/internal/cadenceadapter"
 	"github.com/jeffizhungry/workflows/app/internal/workflows"
 	"github.com/labstack/echo/v4"
 	"github.com/sirupsen/logrus"
-	"go.uber.org/cadence/client"
 )
 
 // RegisterRootHandler registers root route handlers
 func RegisterRootHandler(e *echo.Echo, adapter *cadenceadapter.CadenceAdapter) {
-	root := rootHandler{adapter}
+	root := rootHandler{
+		helloClient: workflows.NewHelloWorkflowClient(adapter.CadenceClient),
+	}
 	e.GET("/", root.home)
 	e.GET("/start", root.startWorkflow)
 	e.GET("/continue", root.continueWorkflow)
 }
 
 type rootHandler struct {
-	adapter *cadenceadapter.CadenceAdapter
+	helloClient *workflows.HelloWorkflowClient
 }
 
 func (h *rootHandler) home(c echo.Context) error {
@@ -38,19 +38,16 @@ func (h *rootHandler) startWorkflow(c echo.Context) error {
 	}
 
 	// Run
-	wo := client.StartWorkflowOptions{
-		TaskList:                     workflows.TaskListName,
-		ExecutionStartToCloseTimeout: time.Hour * 24,
-	}
-	execution, err := h.adapter.CadenceClient.StartWorkflow(context.Background(), wo, workflows.Workflow, accountID)
+	workflowID, err := h.helloClient.Start(context.TODO(), accountID)
 	if err != nil {
 		return c.String(http.StatusBadRequest, fmt.Sprintf("Error starting workflow: %w", err))
 	}
 	logrus.WithFields(logrus.Fields{
-		"workflowId": execution.ID,
-		"runId":      execution.RunID,
-	}).Info("Started workflow!")
-	return c.JSONPretty(http.StatusOK, execution)
+		"workflowId": workflowID,
+	}).Info("Started workflow")
+	return c.JSONPretty(http.StatusOK, map[string]string{
+		"workflowId": workflowID,
+	}, "  ")
 }
 
 func (h *rootHandler) continueWorkflow(c echo.Context) error {
@@ -69,7 +66,7 @@ func (h *rootHandler) continueWorkflow(c echo.Context) error {
 	}
 
 	// Run
-	if err = h.adapter.CadenceClient.SignalWorkflow(context.Background(), workflowID, "", workflows.SignalName, age); err != nil {
+	if err = h.helloClient.Continue(context.TODO(), workflowID, age); err != nil {
 		return c.String(http.StatusBadRequest, fmt.Sprintf("Error signalling workflow: %w", err))
 	}
 	logrus.WithFields(logrus.Fields{

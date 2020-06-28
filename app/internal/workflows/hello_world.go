@@ -6,6 +6,7 @@ import (
 	"time"
 
 	"go.uber.org/cadence/activity"
+	"go.uber.org/cadence/client"
 	"go.uber.org/cadence/workflow"
 	"go.uber.org/zap"
 )
@@ -14,46 +15,47 @@ import (
  * This is the hello world workflow sample.
  */
 
-// TaskListName is the task list for this sample
-const TaskListName = "helloWorldGroup"
-const SignalName = "helloWorldSignal"
+// taskListName is the task list for this sample
+const (
+	taskListName = "helloWorldGroup"
+	signalName   = "helloWorldSignal"
+)
 
 // This is registration process where you register all your workflows
 // and activity function handlers.
 func init() {
-	workflow.Register(Workflow)
-	activity.Register(helloworldActivity)
+	workflow.Register(HelloWorkflow)
+	activity.Register(helloActivity)
 }
 
 var activityOptions = workflow.ActivityOptions{
-	ScheduleToStartTimeout: time.Minute,
-	StartToCloseTimeout:    time.Minute,
-	HeartbeatTimeout:       time.Second * 20,
+	ScheduleToStartTimeout: 1 * time.Minute,
+	StartToCloseTimeout:    1 * time.Minute,
+	HeartbeatTimeout:       20 * time.Second,
 }
 
-func helloworldActivity(ctx context.Context, name string) (string, error) {
+func helloActivity(ctx context.Context, name string) (string, error) {
 	logger := activity.GetLogger(ctx)
 	logger.Info("helloworld activity started")
 	return "Hello " + name + "! How old are you!", nil
 }
 
-func Workflow(ctx workflow.Context, name string) (string, error) {
+// HelloWorkflow is a hello workflow
+func HelloWorkflow(ctx workflow.Context, name string) (string, error) {
 	ctx = workflow.WithActivityOptions(ctx, activityOptions)
 
 	logger := workflow.GetLogger(ctx)
 	logger.Info("helloworld workflow started")
 	var activityResult string
-	err := workflow.ExecuteActivity(ctx, helloworldActivity, name).Get(ctx, &activityResult)
+	err := workflow.ExecuteActivity(ctx, helloActivity, name).Get(ctx, &activityResult)
 	if err != nil {
 		logger.Error("Activity failed.", zap.Error(err))
 		return "", err
 	}
 
 	// After saying hello, the workflow will wait for you to inform it of your age!
-	signalName := SignalName
 	selector := workflow.NewSelector(ctx)
 	var ageResult int
-
 	for {
 		signalChan := workflow.GetSignalChannel(ctx, signalName)
 		selector.AddReceive(signalChan, func(c workflow.Channel, more bool) {
@@ -73,4 +75,38 @@ func Workflow(ctx workflow.Context, name string) (string, error) {
 			return "You can't be that old!", nil
 		}
 	}
+}
+
+// HelloWorkflowClient is used to interact with the HelloWorkflow
+type HelloWorkflowClient struct {
+	cadenceClient client.Client
+}
+
+// NewHelloWorkflowClient initializes a new HelloWorkflowClient
+func NewHelloWorkflowClient(cadenceClient client.Client) *HelloWorkflowClient {
+	return &HelloWorkflowClient{cadenceClient}
+}
+
+// Start starts HelloWorkflow
+func (wc *HelloWorkflowClient) Start(ctx context.Context, accountID string) (workflowID string, err error) {
+	options := client.StartWorkflowOptions{
+		TaskList:                     workflows.taskListName,
+		ExecutionStartToCloseTimeout: time.Hour * 24,
+	}
+	execution, err := wc.cadenceClient.StartWorkflow(ctx, options, HelloWorkflow, accountID)
+	if err != nil {
+		return "", err
+	}
+	return execution.ID, nil
+}
+
+// Continue continues HelloWorkflow with an age param.
+func (wc *HelloWorkflowClient) Continue(ctx context.Context, workflowID string, age int) error {
+	return wc.cadenceClient.SignalWorkflow(
+		ctx,
+		workflowID,
+		"",
+		signalName,
+		age,
+	)
 }
