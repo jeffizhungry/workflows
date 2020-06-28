@@ -7,6 +7,7 @@ require (
 	github.com/codeskyblue/kexec v0.0.0-20180119015717-5a4bed90d99a // indirect
 	github.com/fsnotify/fsnotify v1.4.9 // indirect
 	github.com/google/shlex v0.0.0-20191202100458-e7afc7fbc510 // indirect
+	github.com/labstack/echo/v4 v4.1.16
 	github.com/spf13/viper v1.7.0
 	github.com/uber-go/tally v3.3.17+incompatible
 	go.uber.org/cadence v0.12.2
