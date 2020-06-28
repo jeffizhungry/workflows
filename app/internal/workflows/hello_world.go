@@ -5,19 +5,16 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/jeffizhungry/workflows/exampleapp/worker/workflows"
 	"go.uber.org/cadence/activity"
 	"go.uber.org/cadence/client"
 	"go.uber.org/cadence/workflow"
 	"go.uber.org/zap"
 )
 
-/**
- * This is the hello world workflow sample.
- */
-
-// taskListName is the task list for this sample
+// TaskListName is the task list for this sample
 const (
-	taskListName = "helloWorldGroup"
+	TaskListName = "helloWorldGroup"
 	signalName   = "helloWorldSignal"
 )
 
@@ -90,7 +87,7 @@ func NewHelloWorkflowClient(cadenceClient client.Client) *HelloWorkflowClient {
 // Start starts HelloWorkflow
 func (wc *HelloWorkflowClient) Start(ctx context.Context, accountID string) (workflowID string, err error) {
 	options := client.StartWorkflowOptions{
-		TaskList:                     workflows.taskListName,
+		TaskList:                     workflows.TaskListName,
 		ExecutionStartToCloseTimeout: time.Hour * 24,
 	}
 	execution, err := wc.cadenceClient.StartWorkflow(ctx, options, HelloWorkflow, accountID)
